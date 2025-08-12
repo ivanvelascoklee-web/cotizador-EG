@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cotizador por Área</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    pre {
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+      line-height: 12px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      margin-top: 15px;
+      display: block;
+      font-weight: bold;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .resultado {
+      margin-top: 20px;
+      font-size: 1.1em;
+      color: #0078D7;
+      text-align: center;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Logo ASCII EG / Sing -->
+<pre>
+  ╔═══╦═══╗▒▒▒
+  ║╔══╣╔═╗║▒▒▒
+  ║╚══╣║ ╚╝▒▒▒
+  ║╔══╣║╔═╗▒▒▒
+  ║╚══╣╚╩═║▒▒▒
+  ╚═══╩═══╝▒▒▒
+╔══╦╦═╗╔══╦══╗
+║══╬╣╔╗╣╔╗║══╣
+╠══║║║║║╚╝╠══║
+╚══╩╩╝╚╩═╗╠══╝
+▒▒▒▒▒▒▒╔═╝║▒▒▒
+▒▒▒▒▒▒▒╚══╝▒▒▒
+</pre>
+
+<h2>Cotizador por área EG sings</h2>
+
+<label for="unidad">¿Qué Unidad de medidad deseas utilizar?:</label>
+<select id="unidad">
+  <option value="milimetros" selected>Milímetros</option>
+  <option value="centimetros">Centímetros</option>
+  <option value="pulgadas">Pulgadas</option>
+  <option value="pies">Pies</option>
+  <option value="yardas">Yardas</option>
+  <option value="metros">Metros</option>
+</select>
+
+<label for="alto">Ingresa la Altura del objeto:</label>
+<input type="number" id="alto" placeholder="Ej. 20" min="0">
+
+<label for="largo">Ingresa el Largo del objeto:</label>
+<input type="number" id="largo" placeholder="Ej. 30" min="0">
+
+<div class="resultado" id="areaIndividual"></div>
+
+<label for="caras">Cuántos lados deseas calcular?:</label>
+<input type="number" id="caras" value="1" min="1">
+
+<div class="resultado" id="areaTotal"></div>
+
+<label for="precioUnidad">Cuál es el valor por unidad?(USD):</label>
+<input type="number" id="precioUnidad" value="0" step="0.01" min="0">
+
+<div class="resultado" id="precioIndividual"></div>
+<div class="resultado" id="precioTotal"></div>
+
+<script>
+  const unidadSelect = document.getElementById("unidad");
+  const altoInput = document.getElementById("alto");
+  const largoInput = document.getElementById("largo");
+  const carasInput = document.getElementById("caras");
+  const precioUnidadInput = document.getElementById("precioUnidad");
+
+  const areaIndividualDiv = document.getElementById("areaIndividual");
+  const areaTotalDiv = document.getElementById("areaTotal");
+  const precioIndividualDiv = document.getElementById("precioIndividual");
+  const precioTotalDiv = document.getElementById("precioTotal");
+
+  function convertir(valor, unidadOrigen, unidadDestino) {
+    const factores = {
+      milimetros: 0.0393701,
+      centimetros: 0.393701,
+      metros: 39.3701,
+      pies: 12,
+      yardas: 36,
+      pulgadas: 1
+    };
+
+    const valorEnPulgadas = valor * (factores[unidadOrigen] || 1);
+
+    if (unidadDestino === "pies") {
+      return valorEnPulgadas / 12;
+    }
+
+    return valorEnPulgadas;
+  }
+
+  function calcular() {
+    const unidad = unidadSelect.value;
+    const alto = parseFloat(altoInput.value);
+    const largo = parseFloat(largoInput.value);
+    const caras = parseInt(carasInput.value);
+    const precioUnidad = parseFloat(precioUnidadInput.value);
+
+    if (
+      isNaN(alto) || alto <= 0 ||
+      isNaN(largo) || largo <= 0 ||
+      isNaN(caras) || caras <= 0 ||
+      isNaN(precioUnidad) || precioUnidad < 0
+    ) {
+      areaIndividualDiv.innerText = "";
+      areaTotalDiv.innerText = "";
+      precioIndividualDiv.innerText = "";
+      precioTotalDiv.innerText = "";
+      return;
+    }
+
+    const area = alto * largo;
+    const areaTotal = area * caras;
+    const costoIndividual = area * precioUnidad;
+    const costoTotal = areaTotal * precioUnidad;
+
+    let resultado = `Área individual: ${area.toFixed(2)} ${unidad}²`;
+
+    if (unidad !== "pulgadas") {
+      const altoPulg = convertir(alto, unidad, "pulgadas").toFixed(2);
+      const largoPulg = convertir(largo, unidad, "pulgadas").toFixed(2);
+      resultado += `
+(Alto: ${altoPulg} in, Largo: ${largoPulg} in)`;
+    } else {
+      const altoPies = convertir(alto, unidad, "pies").toFixed(2);
+      const largoPies = convertir(largo, unidad, "pies").toFixed(2);
+      resultado += `
+(Alto: ${altoPies} ft, Largo: ${largoPies} ft)`;
+    }
+
+    areaIndividualDiv.innerText = resultado;
+    areaTotalDiv.innerText = `Área total (${caras} lados): ${areaTotal.toFixed(2)} ${unidad}²`;
+    precioIndividualDiv.innerText = `Valor por lado: $${costoIndividual.toFixed(2)}`;
+    precioTotalDiv.innerText = `Valor total: $${costoTotal.toFixed(2)}`;
+  }
+
+  altoInput.addEventListener("input", calcular);
+  largoInput.addEventListener("input", calcular);
+  carasInput.addEventListener("input", calcular);
+  precioUnidadInput.addEventListener("input", calcular);
+  unidadSelect.addEventListener("change", calcular);
+</script>
+
+<br><br>
+
+<div style="text-align: center; margin-top: 30px;">
+  <button onclick="location.reload()" style="padding: 10px 20px; font-size: 16px; background-color: #0078D7; color: white; border: none; border-radius: 5px; cursor: pointer;">
+   Limpiar Datos
+  </button>
+</div>
+<br>
+
+<h5 style="text-align: center;">
+  <span class="card-label fw-bolder fs-3 mb-1">V 1.0.1 EG-sings</span>                    
+</h5>
+
+
+</body>
+</html>
